@@ -370,6 +370,11 @@ begin
       check_equal(read_word(memory, 7, 5), std_logic_vector'(x"aaffbbccdd"));
       check_equal(read_word(memory, 7, 1), std_logic_vector'(x"aa"));
       check_equal(read_word(memory, 8, 1), std_logic_vector'(x"ff"));
+
+    elsif run("Test 1MB alloc") then
+      memory := new_memory;
+      buf := allocate(memory, 1024*1024);
+
     end if;
 
     test_runner_cleanup(runner);
