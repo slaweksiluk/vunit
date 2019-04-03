@@ -10,8 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 context work.vunit_context;
-context work.com_context;
-use work.memory_pkg.all;
+context work.vc_context;
 use work.avalon_pkg.all;
 
 entity tb_avalon_slave is

@@ -10,11 +10,10 @@ use ieee.numeric_std.all;
 
 library vunit_lib;
 context vunit_lib.vunit_context;
-context work.com_context;
+context work.vc_context;
 
 use work.queue_pkg.all;
 use work.bus_master_pkg.all;
-use work.memory_pkg.all;
 use work.logger_pkg.all;
 
 entity tb_bus_master_pkg is

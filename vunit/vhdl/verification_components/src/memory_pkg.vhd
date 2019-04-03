@@ -8,32 +8,18 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.integer_vector_ptr_pkg.all;
 use work.string_ptr_pkg.all;
 use work.logger_pkg.all;
+use work.memory_types_pkg.all;
 
 package memory_pkg is
-
-  type endianness_arg_t is (little_endian,
-                            big_endian,
-                            default_endian);
-  subtype endianness_t is endianness_arg_t range little_endian to big_endian;
-
-  -- Memory model object
-  type memory_t is record
-    -- Private
-    p_meta : integer_vector_ptr_t;
-    p_default_endian : endianness_t;
-    p_check_permissions : boolean;
-    p_data : integer_vector_ptr_t;
-    p_buffers : integer_vector_ptr_t;
-    p_logger : logger_t;
-  end record;
-  constant null_memory : memory_t := (p_logger => null_logger,
-                                      p_check_permissions => boolean'low,
-                                      p_default_endian => endianness_t'low,
-                                      others => null_ptr);
+  generic (
+    procedure write_byte_unchecked(memory : memory_t; address : natural; byte : byte_t);
+    impure function read_byte_unchecked(memory : memory_t; address : natural) return byte_t
+  );
 
   -- Default memory logger
   constant memory_logger : logger_t := get_logger("vunit_lib:memory_pkg");
@@ -51,7 +37,6 @@ package memory_pkg is
   -----------------------------------------------------
   -- Memory data read and write functions
   -----------------------------------------------------
-  subtype byte_t is integer range 0 to 255;
   procedure write_byte(memory : memory_t;
                        address : natural;
                        byte : byte_t);
@@ -78,10 +63,6 @@ package memory_pkg is
   -----------------------------------------------------
   -- Memory access permission control functions
   -----------------------------------------------------
-  type permissions_t is (no_access,
-                         write_only,
-                         read_only,
-                         read_and_write);
   impure function get_permissions(memory : memory_t;
                                   address : natural) return permissions_t;
   procedure set_permissions(memory : memory_t;
@@ -134,14 +115,6 @@ package memory_pkg is
   -- Memory buffer allocation
   -----------------------------------------------------
 
-  -- Reference to an allocated buffer with the memory
-  type buffer_t is record
-    -- Private
-    p_memory_ref : memory_t;
-    p_name : string_ptr_t;
-    p_address : natural;
-    p_num_bytes : natural;
-  end record;
   constant null_buffer : buffer_t := (p_memory_ref => null_memory,
                                       p_name => null_string_ptr,
                                       p_address => natural'low,
@@ -188,8 +161,5 @@ package memory_pkg is
   impure function check_write_data(memory : memory_t;
                                    address : natural;
                                    byte : byte_t) return boolean;
-
-  -- Perform write of one byte without running any address or data checks
-  procedure write_byte_unchecked(memory : memory_t; address : natural; byte : byte_t);
 
 end package;

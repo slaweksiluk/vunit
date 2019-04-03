@@ -10,8 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 context work.vunit_context;
-context work.com_context;
-use work.memory_pkg.all;
+context work.vc_context;
 use work.wishbone_pkg.all;
 use work.bus_master_pkg.all;
 
@@ -26,7 +25,6 @@ entity tb_wishbone_master is
 end entity;
 
 architecture a of tb_wishbone_master is
-
   type tb_cfg_t is record
     dat_width : positive;
     adr_width : positive;

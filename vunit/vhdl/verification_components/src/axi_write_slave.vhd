@@ -12,10 +12,9 @@ use work.axi_pkg.all;
 use work.axi_slave_pkg.all;
 use work.axi_slave_private_pkg.all;
 use work.queue_pkg.all;
-use work.memory_pkg.all;
 use work.integer_vector_ptr_pkg.all;
 use work.integer_vector_ptr_pool_pkg.all;
-context work.com_context;
+context work.vc_context;
 
 entity axi_write_slave is
   generic (
