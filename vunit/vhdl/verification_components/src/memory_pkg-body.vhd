@@ -214,13 +214,6 @@ package body memory_pkg is
     return get(memory.p_meta, num_bytes_idx);
   end;
 
-  procedure write_byte_unchecked(memory : memory_t; address : natural; byte : byte_t) is
-    variable old : memory_data_t;
-  begin
-    old := decode(get(memory.p_data, address));
-    set(memory.p_data, address, encode((byte => byte, exp => old.exp, has_exp => old.has_exp, perm => old.perm)));
-  end;
-
   procedure write_byte(memory : memory_t; address : natural; byte : byte_t) is
   begin
     if not check_address(memory, address, false, memory.p_check_permissions) then
@@ -235,7 +228,10 @@ package body memory_pkg is
 
   impure function read_byte(memory : memory_t; address : natural) return byte_t is
   begin
-    return get(memory, address, true, memory.p_check_permissions).byte;
+    if not check_address(memory, address, true, true) then
+      return decode(0).byte;
+    end if;
+    return read_byte_unchecked(memory, address);
   end;
 
   procedure check_expected_was_written(memory : memory_t; address : natural; num_bytes : natural) is
