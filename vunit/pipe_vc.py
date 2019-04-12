@@ -35,9 +35,21 @@ class BusBase(object):
     def data_bytes(self, d):
         return self.as_bytes(d, self.data_size)
 
-    def read_data(self):
+    def read_byte_data(self):
         b = self.rp.read(self.data_size)
+        return b
+
+    def read_data(self):
+        b = self.read_byte_data()
         return int.from_bytes(b, self.order)
+
+    def read_addr(self):
+        b = self.rp.read(self.addr_size)
+        return int.from_bytes(b, self.order)
+
+    def read_cmd(self):
+        b = self.rp.read(1)
+        return b
 
 
 class BusMaster(BusBase):
@@ -58,3 +70,24 @@ class BusMaster(BusBase):
         self.wp.write(self.addr_bytes(addr))
         self.wp.flush()
         return self.read_data()
+
+    def read_bytes(self, addr):
+        self.wp.write(self.RD_CMD)
+        self.wp.write(self.addr_bytes(addr))
+        self.wp.flush()
+        return self.read_byte_data()
+
+
+class BusSlave(BusBase):
+    def get(self):
+        cmd = self.read_cmd()
+        if cmd == self.WR_CMD:
+            addr = self.read_addr()
+            data = self.read_data()
+            return addr, data
+        elif cmd == self.RD_CMD:
+            raise "TODO"
+        elif cmd == b'':
+            raise ValueError('Received empty command byte')
+        else:
+            raise ValueError('Unknown command byte: '+str(cmd))
