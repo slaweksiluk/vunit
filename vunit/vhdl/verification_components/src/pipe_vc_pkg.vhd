@@ -18,6 +18,7 @@ package pipe_bridge_pkg is
     constant WR_CMD : std_ulogic_vector(7 downto 0) := x"00";
     constant RD_CMD : std_ulogic_vector(7 downto 0) := x"01";
     constant FINISH_CMD : std_ulogic_vector(7 downto 0) := x"02";
+    constant WR_ACK : std_ulogic_vector(7 downto 0) := x"03";
     type bin_file_t is file of character;
 
     impure function read_bytes (file f : bin_file_t; n : positive) return std_ulogic_vector;

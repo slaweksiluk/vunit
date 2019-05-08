@@ -46,6 +46,7 @@ begin
     constant bus_addr_bytes : positive := address_length/8;
     variable request_msg : msg_t;
     variable msg_type : msg_type_t;
+    variable ack : std_ulogic_vector(7 downto 0);
   begin
     file_open(f_status, wp, wrpipe_path, read_mode);
     assert f_status = open_ok severity error;
@@ -62,6 +63,8 @@ begin
             write_bytes(rp, addr);
             write_bytes(rp, data);
             flush(rp);
+            ack := read_bytes(wp, 1);
+            assert ack = WR_ACK severity failure;
         -- TODO read msg
         else
             unexpected_msg_type(msg_type);

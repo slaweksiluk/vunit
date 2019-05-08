@@ -10,6 +10,8 @@ from itertools import product
 import os
 import errno
 import subprocess
+from threading import Thread, Lock
+import time
 
 root = dirname(__file__)
 
@@ -18,6 +20,7 @@ class BusBase(object):
     WR_CMD = bytes.fromhex('00')
     RD_CMD = bytes.fromhex('01')
     FINISH_CMD = bytes.fromhex('02')
+    WR_ACK = bytes.fromhex('03')
 
     def __init__(self, wrpipe_path, rdpipe_path, addr_size, data_size):
         self.addr_size = addr_size
@@ -79,15 +82,56 @@ class BusMaster(BusBase):
 
 
 class BusSlave(BusBase):
+    def __init__(self, wrpipe_path, rdpipe_path, addr_size, data_size):
+        super().__init__(wrpipe_path, rdpipe_path, addr_size, data_size)
+        self.addr = None
+        self.data = None
+        self.wr_lock = Lock()
+        self.p = Thread(target=self.target)
+        self.p.start()
+
+    def target(self):
+        while 1:
+            cmd = self.read_cmd()
+            if cmd == self.WR_CMD:
+                self.wr_lock.acquire()
+                self.addr = self.read_addr()
+                self.data = self.read_data()
+                self.wr_lock.release()
+            elif cmd == self.RD_CMD:
+                raise ValueError('Slave read not (yet) implemented')
+            elif cmd == b'':
+                print('Received empty command byte (broken pipe?) exit...')
+                break
+            else:
+                raise ValueError('Unknown command byte: '+str(cmd))
+
     def get(self):
-        cmd = self.read_cmd()
-        if cmd == self.WR_CMD:
-            addr = self.read_addr()
-            data = self.read_data()
-            return addr, data
-        elif cmd == self.RD_CMD:
-            raise "TODO"
-        elif cmd == b'':
-            raise ValueError('Received empty command byte')
-        else:
-            raise ValueError('Unknown command byte: '+str(cmd))
+        self.wr_lock.acquire()
+        a = self.addr
+        self.addr = None
+        d = self.data
+        self.data = None
+        self.wr_lock.release()
+        # Write acknowledge (only if data valid)
+        if a is not None:
+            self.write_ack()
+        return a, d
+
+    def poll(self):
+        addr = None
+        while addr is None:
+            addr, data = self.get()
+            time.sleep(1)
+        return addr, data
+
+    def __del__(self):
+        self.p.join()
+
+    def write_ack(self):
+        self.wp.write(self.WR_ACK)
+        try:
+            self.wp.flush()
+        except BrokenPipeError as err:
+            print('OSError during flush:', err)
+            pass

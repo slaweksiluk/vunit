@@ -8,6 +8,7 @@ from os.path import dirname, join
 from vunit import VUnit
 from threading import Thread
 from vunit.pipe_vc import BusSlave
+import time
 
 
 root = dirname(__file__)
@@ -22,7 +23,7 @@ def make_pre_call(p):
 
 def make_post_call(p):
     def post_call(output_path):
-        p.join(1)
+        p.join(5)
         if p.is_alive():
             print('thread stuck - force exit')
             return False
@@ -35,9 +36,12 @@ def slave_stim():
     wrpipe_path = join(root, 'wrpipe0')
     rdpipe_path = join(root, 'rdpipe0')
     bus0 = BusSlave(wrpipe_path, rdpipe_path, 4, 4)
-    addr, data = bus0.get()
+    addr, data = bus0.poll()
+    print('Slave received following write:')
     print('addr'+hex(addr))
     print('data'+hex(data))
+    assert addr == 0x04
+    assert data == 0xab8912fe
 
 
 ui = VUnit.from_argv()
