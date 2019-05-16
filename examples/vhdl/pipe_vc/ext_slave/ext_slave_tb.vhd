@@ -18,7 +18,8 @@ use osvvm.RandomPkg.all;
 entity ext_slave_tb is
   generic (
     runner_cfg : string := "";
-    encoded_tb_cfg : string := ""
+    encoded_tb_cfg : string := "";
+    output_path : string := ""
   );
 end entity;
 
@@ -27,21 +28,13 @@ architecture bench of ext_slave_tb is
     data_width : positive;
     addr_width : positive;
     burst_width : positive;
-    wrpipe0_path : string;
-    rdpipe0_path : string;
-    wrpipe1_path : string;
-    rdpipe1_path : string;
   end record tb_cfg_t;
 
   impure function decode(encoded_tb_cfg : string) return tb_cfg_t is
   begin
     return (data_width => 32,
             addr_width => 32,
-            burst_width => 1,
-            wrpipe0_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_slave/wrpipe0",
-            rdpipe0_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_slave/rdpipe0",
-            wrpipe1_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_slave/wrpipe0",
-            rdpipe1_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_slave/rdpipe0"
+            burst_width => 1
     );
   end function decode;
   constant tb_cfg : tb_cfg_t := decode(encoded_tb_cfg);
@@ -74,6 +67,15 @@ begin
       push(msg, data);
       send(net, pipe_slave_actor, msg);
       wait for 100 ns;
+    elsif run("write-to-slave-2") then
+      wait until rising_edge(clk) and rst = '0';
+      msg := new_msg(bus_write_msg);
+      addr := x"00000004";
+      data := x"ab8912fe";
+      push(msg, addr);
+      push(msg, data);
+      send(net, pipe_slave_actor, msg);
+      wait for 100 ns;
     end if;
     info(tb_logger, "Quit");
     -- wait;
@@ -87,8 +89,8 @@ begin
   --
   ext_slave_bridge: entity work.pipe_vc_slave
     generic map (
-        wrpipe_path => tb_cfg.wrpipe0_path,
-        rdpipe_path => tb_cfg.rdpipe0_path,
+        wrpipe_path => output_path&"BusSlave0_wrpipe",
+        rdpipe_path => output_path&"BusSlave0_rdpipe",
         data_length => tb_cfg.data_width,
         address_length => tb_cfg.addr_width,
         logger => pipe_slave_logger,

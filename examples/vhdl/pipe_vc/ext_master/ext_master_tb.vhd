@@ -18,7 +18,8 @@ use osvvm.RandomPkg.all;
 entity ext_master_tb is
   generic (
     runner_cfg : string := "";
-    encoded_tb_cfg : string := ""
+    encoded_tb_cfg : string := "";
+    output_path : string := ""
   );
 end entity;
 
@@ -27,21 +28,13 @@ architecture bench of ext_master_tb is
     data_width : positive;
     addr_width : positive;
     burst_width : positive;
-    wrpipe0_path : string;
-    rdpipe0_path : string;
-    wrpipe1_path : string;
-    rdpipe1_path : string;
   end record tb_cfg_t;
 
   impure function decode(encoded_tb_cfg : string) return tb_cfg_t is
   begin
     return (data_width => 32,
             addr_width => 32,
-            burst_width => 1,
-            wrpipe0_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_master/master0_wrpipe",
-            rdpipe0_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_master/master0_rdpipe",
-            wrpipe1_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_master/master1_wrpipe",
-            rdpipe1_path => "/home/slawek/git/github/vunit/examples/vhdl/pipe_vc/ext_master/master1_rdpipe"
+            burst_width => 1
     );
   end function decode;
   constant tb_cfg : tb_cfg_t := decode(encoded_tb_cfg);
@@ -113,6 +106,11 @@ begin
       subscribe(channel, ext_master1_master_actor);
       await_pipe_close(net, channel);
       await_pipe_close(net, channel);
+    elsif run("test case 2") then
+      subscribe(channel, ext_master0_master_actor);
+      subscribe(channel, ext_master1_master_actor);
+      await_pipe_close(net, channel);
+      await_pipe_close(net, channel);
     end if;
     info(tb_logger, "Quit");
     test_runner_cleanup(runner);
@@ -125,8 +123,8 @@ begin
   --
   ext_master0_pipe_brdige: entity work.pipe_vc_bridge
     generic map (
-        wrpipe_path => tb_cfg.wrpipe0_path,
-        rdpipe_path => tb_cfg.rdpipe0_path,
+        wrpipe_path => output_path&"BusMaster0_wrpipe",
+        rdpipe_path => output_path&"BusMaster0_rdpipe",
         bus_handle =>  ext_master0_bus_handle,
         logger =>  ext_master0_pipe_logger,
         actor => ext_master0_master_actor
@@ -173,8 +171,8 @@ begin
   -- Master1
   ext_master1_pipe_brdige: entity work.pipe_vc_bridge
     generic map (
-        wrpipe_path => tb_cfg.wrpipe1_path,
-        rdpipe_path => tb_cfg.rdpipe1_path,
+        wrpipe_path => output_path&"BusMaster1_wrpipe",
+        rdpipe_path => output_path&"BusMaster1_rdpipe",
         bus_handle =>  ext_master1_bus_handle,
         logger =>  ext_master1_pipe_logger,
         actor => ext_master1_master_actor

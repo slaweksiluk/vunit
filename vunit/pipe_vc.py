@@ -10,7 +10,7 @@ from itertools import product
 import os
 import errno
 import subprocess
-from threading import Thread, Lock
+from threading import Thread, Lock, enumerate
 import time
 
 root = dirname(__file__)
@@ -22,11 +22,15 @@ class BusBase(object):
     FINISH_CMD = bytes.fromhex('02')
     WR_ACK = bytes.fromhex('03')
 
-    def __init__(self, wrpipe_path, rdpipe_path, addr_size, data_size):
+    def __init__(self, pipes_path, bus_id, addr_size, data_size):
         self.addr_size = addr_size
         self.data_size = data_size
-        self.wp = open(wrpipe_path, 'wb')
-        self.rp = open(rdpipe_path, 'rb')
+        self.wrpipe_path = join(pipes_path, bus_id)+'_wrpipe'
+        self.rdpipe_path = join(pipes_path, bus_id)+'_rdpipe'
+        os.mkfifo(self.wrpipe_path)
+        os.mkfifo(self.rdpipe_path)
+        self.wp = open(self.wrpipe_path, 'wb')
+        self.rp = open(self.rdpipe_path, 'rb')
         self.order = 'big'
 
     def as_bytes(self, d, n):
@@ -135,3 +139,34 @@ class BusSlave(BusBase):
         except BrokenPipeError as err:
             print('OSError during flush:', err)
             pass
+
+
+class BusRunner(Thread):
+    def __init__(self, target, output_path, **kwargs):
+        super().__init__()
+        self.passed = None
+        self.target = target
+        self.output_path = output_path
+        self.name = BusRunner.get_name(output_path)
+        self.kwargs = kwargs
+        self.start()
+
+    def run(self):
+        print('Default run method, run user target()')
+        self.target(self)
+
+    @staticmethod
+    def seek(output_path):
+        name = BusRunner.get_name(output_path)
+        for p in enumerate():
+            if p.name == name:
+                print('Thread '+p.name+'is still running and reports status='+str(p.passed)+'. Await join()...')
+                p.join(1)
+                if p.is_alive():
+                    RuntimeError('Thread '+name+' hang.')
+                return p.passed
+        RuntimeError('Thread '+name+' has not been found.')
+
+    @staticmethod
+    def get_name(output_path):
+        return output_path[-8:]

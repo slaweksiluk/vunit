@@ -46,10 +46,13 @@ begin
     constant bus_addr_bytes : positive := address_length(bus_handle)/8;
     variable msg : msg_t;
   begin
-      file_open(f_status, wp, wrpipe_path, read_mode);
-      assert f_status = open_ok severity error;
+      f_status := name_error;
+      while f_status = name_error loop
+          file_open(f_status, wp, wrpipe_path, read_mode);
+      end loop;
+      assert f_status = open_ok report to_string(f_status)&wrpipe_path severity error;
       file_open(f_status, rp, rdpipe_path, write_mode);
-      assert f_status = open_ok severity error;
+      assert f_status = open_ok report to_string(f_status)&rdpipe_path severity error;
       pipe_loop: loop
       wait until rising_edge(clk) and rst = '0';
       if not endfile(wp) then

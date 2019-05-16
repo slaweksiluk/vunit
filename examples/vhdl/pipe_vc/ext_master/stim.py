@@ -6,18 +6,14 @@
 
 from os.path import join, dirname
 from vunit.pipe_vc import BusMaster
-# from time import sleep
+from time import sleep
 
 root = dirname(__file__)
 
 
-def master_stim():
-    wrpipe_path = join(root, 'master0_wrpipe')
-    rdpipe_path = join(root, 'master0_rdpipe')
-    bus0 = BusMaster(wrpipe_path, rdpipe_path, 4, 4)
-    wrpipe_path = join(root, 'master1_wrpipe')
-    rdpipe_path = join(root, 'master1_rdpipe')
-    bus1 = BusMaster(wrpipe_path, rdpipe_path, 4, 4)
+def master_stim(self):
+    bus0 = BusMaster(self.output_path, 'BusMaster0', 4, 4)
+    bus1 = BusMaster(self.output_path, 'BusMaster1', 4, 4)
     addr = 0x00
     data = 0x0a0b0c0d
     bus0.write(addr, data)
@@ -40,6 +36,9 @@ def master_stim():
 
     bus0.finish()
     bus1.finish()
+
+    self.passed = True
+    sleep(0.5)
 
 
 if __name__ == "__main__":
