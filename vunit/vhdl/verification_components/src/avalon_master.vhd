@@ -27,19 +27,20 @@ entity avalon_master is
     bus_handle          : bus_master_t;
     use_readdatavalid   : boolean := true;
     fixed_read_latency  : natural := 1;  -- (bus cycles).  This parameter is ignored when use_readdatavalid is true
+    burstcount_width    : positive := 1;
     write_high_probability : real range 0.0 to 1.0 := 1.0;
     read_high_probability : real range 0.0 to 1.0 := 1.0
   );
   port (
     clk           : in  std_logic;
-    address       : out std_logic_vector;
-    byteenable    : out std_logic_vector;
-    burstcount    : out std_logic_vector;
+    address       : out std_logic_vector(address_length(bus_handle)-1 downto 0);
+    byteenable    : out std_logic_vector(data_length(bus_handle)/8-1 downto 0);
+    burstcount    : out std_logic_vector(burstcount_width -1 downto 0);
     waitrequest   : in  std_logic;
     write         : out std_logic;
-    writedata     : out std_logic_vector;
+    writedata     : out std_logic_vector(data_length(bus_handle)-1 downto 0);
     read          : out std_logic;
-    readdata      : in  std_logic_vector;
+    readdata      : in  std_logic_vector(data_length(bus_handle)-1 downto 0);
     readdatavalid : in  std_logic
   );
 end entity;
