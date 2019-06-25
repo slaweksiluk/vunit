@@ -71,6 +71,8 @@ class BusMaster(BusBase):
         self.wp.write(self.addr_bytes(addr))
         self.wp.write(self.data_bytes(data))
         self.wp.flush()
+        cmd = self.read_cmd()
+        assert cmd == self.WR_ACK, 'Write acknowledge expected from dut, but received: '+str(cmd)
 
     def read(self, addr):
         self.wp.write(self.RD_CMD)

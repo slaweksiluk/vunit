@@ -65,6 +65,8 @@ begin
             debug(logger, "wr data = "&to_hstring(data));
             write_bus(net, bus_handle, addr, data);
             wait_until_idle(net, bus_handle);
+            write_bytes(rp, WR_ACK);
+            flush(rp);
           when RD_CMD =>
             addr := read_bytes(wp, bus_addr_bytes);
             read_bus(net, bus_handle, addr, data);
