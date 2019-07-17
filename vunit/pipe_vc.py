@@ -128,7 +128,7 @@ class BusSlave(BusBase):
         addr = None
         while addr is None:
             addr, data = self.get()
-            time.sleep(1)
+            time.sleep(0.1)
         return addr, data
 
     def __del__(self):
