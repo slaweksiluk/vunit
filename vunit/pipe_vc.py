@@ -165,9 +165,9 @@ class BusRunner(Thread):
                 print('Thread '+p.name+'is still running and reports status='+str(p.passed)+'. Await join()...')
                 p.join(1)
                 if p.is_alive():
-                    RuntimeError('Thread '+name+' hang.')
+                    raise RuntimeError('Thread '+name+' hang.')
                 return p.passed
-        RuntimeError('Thread '+name+' has not been found.')
+        raise RuntimeError('Thread '+name+' has not been found.')
 
     @staticmethod
     def get_name(output_path):
